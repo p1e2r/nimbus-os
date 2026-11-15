@@ -283,6 +283,9 @@ fn right_section() -> gtk::Box {
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 2);
     row.add_css_class("status");
 
+    // System updates from Arch + the Nimbus repo
+    row.append(&updates_button());
+
     // Network
     let net_btn = gtk::Button::from_icon_name(sys::network_icon(sys::network()));
     net_btn.add_css_class("flat");
@@ -336,6 +339,43 @@ fn right_section() -> gtk::Box {
     });
 
     row
+}
+
+fn updates_button() -> gtk::Button {
+    let btn = gtk::Button::new();
+    btn.add_css_class("flat");
+    btn.add_css_class("updates");
+    let inner = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+    inner.append(&gtk::Image::from_icon_name("software-update-available-symbolic"));
+    let count = gtk::Label::new(None);
+    inner.append(&count);
+    btn.set_child(Some(&inner));
+    btn.set_visible(false);
+    btn.connect_clicked(|b| {
+        b.set_visible(false);
+        sys::spawn(sys::UPDATE_COMMAND);
+    });
+
+    let weak = btn.downgrade();
+    glib::spawn_future_local(async move {
+        // Let the session settle before hitting the network.
+        glib::timeout_future_seconds(60).await;
+        loop {
+            let n = gio::spawn_blocking(sys::pending_updates).await.unwrap_or(None);
+            let Some(btn) = weak.upgrade() else { break };
+            match n {
+                Some(n) if n > 0 => {
+                    count.set_text(&n.to_string());
+                    btn.set_tooltip_text(Some(&format!("{n} updates available — click to install")));
+                    btn.set_visible(true);
+                }
+                _ => btn.set_visible(false),
+            }
+            drop(btn);
+            glib::timeout_future_seconds(60 * 60).await;
+        }
+    });
+    btn
 }
 
 fn volume_button() -> (gtk::MenuButton, impl Fn()) {

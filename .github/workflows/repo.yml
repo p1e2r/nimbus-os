@@ -1,0 +1,74 @@
+name: Publish package repo
+
+# Builds Nimbus's packages and publishes them as a signed pacman repository
+# on the "repo" release. Installed Nimbus systems update from here with
+# `sudo pacman -Syu`.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "nimbus-shell/**"
+      - "packaging/**"
+      - "archiso/build-packages.sh"
+      - ".github/workflows/repo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build packages (Arch container)
+        env:
+          NIMBUS_GPG_KEY: ${{ secrets.NIMBUS_GPG_KEY }}
+        run: |
+          docker run --rm -v "$PWD:/nimbus" -e NIMBUS_GPG_KEY -e GITHUB_ACTIONS=true \
+            archlinux:latest bash /nimbus/archiso/build-packages.sh
+          sudo chown -R "$(id -u):$(id -g)" .
+
+      - name: Collect repo files
+        run: |
+          mkdir -p repo
+          cp -L localrepo/*.pkg.tar.zst repo/
+          cp -L localrepo/*.pkg.tar.zst.sig repo/ 2>/dev/null || true
+          for f in nimbus.db nimbus.files; do
+            cp -L "localrepo/$f.tar.gz" "repo/$f.tar.gz"
+            cp -L "localrepo/$f.tar.gz" "repo/$f"
+            if [ -f "localrepo/$f.tar.gz.sig" ]; then
+              cp -L "localrepo/$f.tar.gz.sig" "repo/$f.tar.gz.sig"
+              cp -L "localrepo/$f.tar.gz.sig" "repo/$f.sig"
+            fi
+          done
+          ls -la repo
+
+      - name: Publish to the "repo" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view repo >/dev/null 2>&1; then
+            gh release create repo --prerelease --latest=false \
+              --title "Nimbus package repository" \
+              --notes "Signed pacman repository for Nimbus. Installed systems use it automatically via /etc/pacman.d/nimbus-mirrorlist. Updated on every push to main."
+          fi
+          # Upload the new files first so the repo is never empty...
+          gh release upload repo repo/* --clobber
+          # ...then remove packages that are no longer in the database.
+          keep=$(ls repo)
+          gh release view repo --json assets -q '.assets[].name' | while read -r asset; do
+            if ! grep -qxF "$asset" <<<"$keep"; then
+              echo "Removing old asset $asset"
+              gh release delete-asset repo "$asset" --yes
+            fi
+          done

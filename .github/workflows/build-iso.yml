@@ -43,14 +43,18 @@ jobs:
           df -h / /mnt
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build packages and ISO (Arch container)
+        env:
+          NIMBUS_GPG_KEY: ${{ secrets.NIMBUS_GPG_KEY }}
         run: |
           sudo mkdir -p /mnt/work
           docker run --rm --privileged \
             -v "$PWD:/nimbus" \
             -v /mnt/work:/work \
-            -e GITHUB_ACTIONS=true \
+            -e GITHUB_ACTIONS=true -e NIMBUS_GPG_KEY \
             archlinux:latest \
             bash -c 'bash /nimbus/archiso/build-packages.sh && WORK_DIR=/work/nimbus bash /nimbus/archiso/build-iso.sh'
           sudo rm -rf /mnt/work
@@ -76,13 +80,6 @@ jobs:
             echo "split=false" >> "$GITHUB_OUTPUT"
           fi
           cp out/*.sha256 release/
-          # Pacman repo for installed systems (symlinks resolved).
-          mkdir -p repo
-          cp -L localrepo/*.pkg.tar.zst repo/
-          cp -L localrepo/nimbus.db.tar.gz repo/nimbus.db.tar.gz
-          cp -L localrepo/nimbus.db.tar.gz repo/nimbus.db
-          cp -L localrepo/nimbus.files.tar.gz repo/nimbus.files.tar.gz
-          cp -L localrepo/nimbus.files.tar.gz repo/nimbus.files
 
       - name: Upload ISO as workflow artifact
         uses: actions/upload-artifact@v4
@@ -91,20 +88,6 @@ jobs:
           path: release/
           compression-level: 0
           retention-days: 14
-
-      - name: Publish pacman repo
-        if: github.event_name != 'pull_request'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: repo
-          name: Nimbus package repository
-          body: |
-            Pacman repository used by installed Nimbus systems:
-            `Server = https://github.com/${{ github.repository }}/releases/download/repo`
-            Updated automatically on every push to main.
-          prerelease: true
-          make_latest: false
-          files: repo/*
 
       - name: Publish ISO release
         if: github.event_name != 'pull_request'

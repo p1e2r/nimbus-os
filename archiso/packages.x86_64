@@ -2,6 +2,7 @@
 
 # Nimbus Desktop (pulls in labwc, pipewire, NetworkManager, fonts, ...)
 nimbus-shell
+nimbus-release
 
 # Graphical installer and what it needs on the live system
 calamares

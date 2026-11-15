@@ -29,6 +29,23 @@ The live system logs straight into Nimbus Desktop. To install, click the cloud i
 
 > Nimbus Desktop is already on the ISO, so it installs offline. The other desktops are downloaded during install, so you'll need internet for those.
 
+## Updates and the Nimbus package repo
+
+Nimbus has its own signed pacman repository, `[nimbus]`, on top of Arch's repos. It's hosted on this repo's [`repo` release](../../releases/tag/repo). Every installed system has it configured already:
+
+```ini
+# /etc/pacman.conf
+[nimbus]
+SigLevel = Optional TrustedOnly
+Include = /etc/pacman.d/nimbus-mirrorlist
+```
+
+- Every push to `main` rebuilds the packages (`nimbus-shell`, `nimbus-release`, `calamares`), signs them, and publishes them. That's done by the [repo workflow](.github/workflows/repo.yml). `nimbus-shell` gets a new version (`0.1.0.r<commits>.g<hash>`) on each push, so `sudo pacman -Syu` picks it up.
+- `nimbus-release` ships the signing key and `/etc/pacman.d/nimbus-mirrorlist`, so the key and the repo address can be updated like any other package.
+- The panel checks for Arch and Nimbus updates every hour and shows a ⟳ count. Click it to update.
+
+Signing key: `089C 4FBE 06D6 C1BF 259E  168C EF84 D5DF 657C 00F4`. Its private half goes in the `NIMBUS_GPG_KEY` Actions secret. Without that secret, packages are published unsigned.
+
 ## Keyboard shortcuts (Nimbus Desktop)
 
 | Keys | Action |
@@ -53,6 +70,7 @@ Config lives in `~/.config/nimbus/shell.toml` (shell) and `~/.config/nimbus/labw
 nimbus-shell/            Rust source for Nimbus Desktop + its data files
 packaging/nimbus-shell/  PKGBUILD for nimbus-shell
 packaging/calamares/     PKGBUILD for Calamares (not in official Arch repos)
+packaging/nimbus-release/ repo signing key + mirrorlist package
 archiso/                 ISO overlay on top of Arch's "releng" profile
   airootfs/              files added to the live system (installer config, live user, …)
   packages.x86_64        extra packages for the ISO

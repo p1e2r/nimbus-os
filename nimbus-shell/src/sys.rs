@@ -69,6 +69,27 @@ pub fn restart_wallpaper() {
     spawn_self("wallpaper");
 }
 
+// -------------------------------------------------------------- updates
+
+/// Opens a terminal that upgrades the whole system.
+pub const UPDATE_COMMAND: &str =
+    "foot -T 'System update' sh -c 'sudo pacman -Syu; echo; read -r -p \"Done. Press Enter to close.\" _'";
+
+/// Number of pending package updates (Arch + Nimbus repos), using
+/// `checkupdates` from pacman-contrib so the real database isn't touched.
+pub fn pending_updates() -> Option<usize> {
+    let out = Command::new("checkupdates")
+        .stderr(Stdio::null())
+        .output()
+        .ok()?;
+    // Exit code 2 means "no updates".
+    match out.status.code() {
+        Some(0) => Some(String::from_utf8_lossy(&out.stdout).lines().count()),
+        Some(2) => Some(0),
+        _ => None,
+    }
+}
+
 // ---------------------------------------------------------------- audio
 
 /// Volume from 0.0 to 1.5 and whether the default sink is muted.

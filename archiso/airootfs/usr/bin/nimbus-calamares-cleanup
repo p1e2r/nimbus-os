@@ -41,7 +41,7 @@ PRESET
 [ -s /etc/pacman.d/mirrorlist ] && cp /etc/pacman.d/mirrorlist "$ROOT/etc/pacman.d/mirrorlist"
 rm -rf "$ROOT/etc/pacman.d/gnupg"
 chroot "$ROOT" pacman-key --init
-chroot "$ROOT" pacman-key --populate archlinux
+chroot "$ROOT" pacman-key --populate archlinux nimbus
 
 # 5. The live user's sudo rule is created at boot, but be thorough.
 rm -f "$ROOT/etc/sudoers.d/10-live"

@@ -1,0 +1,21 @@
+# Maintainer: Nimbus <https://github.com/p1e2r/nimbus-os>
+# Signing key and repository address for the [nimbus] pacman repo.
+pkgname=nimbus-release
+pkgver=1
+pkgrel=1
+pkgdesc="Nimbus repository signing key and mirrorlist"
+arch=('any')
+url="https://github.com/p1e2r/nimbus-os"
+license=('MIT')
+depends=('pacman')
+backup=('etc/pacman.d/nimbus-mirrorlist')
+install=nimbus-release.install
+source=('nimbus.gpg' 'nimbus-trusted' 'nimbus-revoked' 'nimbus-mirrorlist')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm644 nimbus.gpg      "$pkgdir/usr/share/pacman/keyrings/nimbus.gpg"
+  install -Dm644 nimbus-trusted  "$pkgdir/usr/share/pacman/keyrings/nimbus-trusted"
+  install -Dm644 nimbus-revoked  "$pkgdir/usr/share/pacman/keyrings/nimbus-revoked"
+  install -Dm644 nimbus-mirrorlist "$pkgdir/etc/pacman.d/nimbus-mirrorlist"
+}

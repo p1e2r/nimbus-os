@@ -198,7 +198,7 @@ fn system_page() -> gtk::Box {
         ("Network", "Wi-Fi, Ethernet and VPN connections.", "nm-connection-editor"),
         ("Sound", "Output and input devices, per-app volume.", "pavucontrol"),
         ("Bluetooth", "Pair and manage Bluetooth devices.", "blueman-manager"),
-        ("Software", "Update the system in a terminal.", "foot -e sh -c 'sudo pacman -Syu; read -p \"Done. Press Enter\"'"),
+        ("Software updates", "Update Arch and Nimbus packages in a terminal.", sys::UPDATE_COMMAND),
     ];
     for (title, sub, cmd) in tools {
         let b = gtk::Button::with_label("Open");

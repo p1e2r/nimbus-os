@@ -10,6 +10,9 @@ fi
 
 install -m 440 /dev/stdin /etc/sudoers.d/10-live <<<'live ALL=(ALL:ALL) NOPASSWD: ALL'
 
+# Trust the Nimbus repo key (pacman-init only populates Arch's keys).
+pacman-key --populate nimbus >/dev/null 2>&1 || true
+
 cfg=/home/live/.config/nimbus
 mkdir -p "$cfg"
 cat > "$cfg/shell.toml" <<'TOML'

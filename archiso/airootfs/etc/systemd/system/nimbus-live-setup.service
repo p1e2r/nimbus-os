@@ -1,6 +1,7 @@
 [Unit]
 Description=Nimbus live session setup
 Before=display-manager.service
+After=pacman-init.service
 ConditionPathExists=/run/archiso
 
 [Service]

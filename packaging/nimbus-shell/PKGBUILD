@@ -14,12 +14,21 @@ depends=(
   'pipewire' 'pipewire-pulse' 'wireplumber' 'pavucontrol'
   'networkmanager' 'nm-connection-editor' 'polkit-gnome'
   'xdg-desktop-portal-wlr' 'xdg-desktop-portal-gtk' 'inter-font' 'noto-fonts'
+  'pacman-contrib'
 )
 optdepends=('blueman: Bluetooth settings' 'firefox: default web browser')
-makedepends=('cargo')
+makedepends=('cargo' 'git')
 options=('!lto' '!debug')
 
 _src="${startdir}/../../nimbus-shell"
+
+# Every commit becomes a newer package, so `pacman -Syu` picks it up.
+pkgver() {
+  cd "$_src"
+  local base
+  base=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+  printf '%s.r%s.g%s' "$base" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
 
 prepare() {
   cd "$_src"

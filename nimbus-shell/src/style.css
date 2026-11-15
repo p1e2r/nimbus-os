@@ -136,3 +136,8 @@ window.nimbus-panel button.task.active {
 window.nimbus-panel button.task.minimized {
   opacity: 0.55;
 }
+
+window.nimbus-panel button.updates {
+  color: #5aa9ff;
+  font-weight: 700;
+}
