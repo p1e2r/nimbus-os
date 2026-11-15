@@ -56,7 +56,7 @@ jobs:
             -v /mnt/work:/work \
             -e GITHUB_ACTIONS=true -e NIMBUS_GPG_KEY \
             archlinux:latest \
-            bash -c 'bash /nimbus/archiso/build-packages.sh && WORK_DIR=/work/nimbus bash /nimbus/archiso/build-iso.sh'
+            bash -c 'bash /nimbus/archiso/build-packages.sh && WORK_DIR=/work/nimbus bash /nimbus/archiso/build-iso.sh && rm -rf /work/nimbus && WORK_DIR=/work/test bash /nimbus/archiso/test-install.sh /nimbus/out/*.iso'
           sudo rm -rf /mnt/work
           sudo chown -R "$(id -u):$(id -g)" .
           ls -la out localrepo

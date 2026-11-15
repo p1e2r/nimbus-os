@@ -6,4 +6,30 @@ ROOT="${1:?usage: nimbus-calamares-finalize ROOT}"
 # The installer itself is not needed on the installed system.
 chroot "$ROOT" pacman -Rdd --noconfirm calamares 2>/dev/null || true
 rm -rf "$ROOT/etc/calamares"
+rm -f "$ROOT/usr/share/wayland-sessions/labwc.desktop"
+
+# Pre-select the desktop that was just installed on the login screen
+# (SDDM otherwise picks whichever session sorts first).
+session=""
+for s in wayland-sessions/plasma.desktop wayland-sessions/gnome.desktop \
+         wayland-sessions/hyprland.desktop xsessions/xfce.desktop \
+         wayland-sessions/nimbus.desktop; do
+    if [ -f "$ROOT/usr/share/$s" ]; then
+        session="/usr/share/$s"
+        break
+    fi
+done
+user=$(awk -F: '$3 >= 1000 && $3 < 60000 { print $1; exit }' "$ROOT/etc/passwd")
+if [ -n "$session" ]; then
+    mkdir -p "$ROOT/var/lib/sddm"
+    {
+        echo "[Last]"
+        echo "Session=$session"
+        [ -n "$user" ] && echo "User=$user"
+    } > "$ROOT/var/lib/sddm/state.conf"
+    chroot "$ROOT" chown -R sddm:sddm /var/lib/sddm 2>/dev/null || true
+fi
+
+# pacman may have started gpg-agent again; it would block unmounting.
+chroot "$ROOT" gpgconf --homedir /etc/pacman.d/gnupg --kill all 2>/dev/null || true
 exit 0

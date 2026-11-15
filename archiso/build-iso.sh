@@ -30,8 +30,9 @@ keep='^/etc/(passwd|shadow|group|gshadow)$'
 # SDDM logs the live user in; drop releng's root autologin on tty1.
 rm -rf "$profile/airootfs/etc/systemd/system/getty@tty1.service.d"
 # NetworkManager handles networking instead of networkd + iwd.
+# (systemd-resolved stays: the live /etc/resolv.conf points at it.)
 find "$profile/airootfs/etc/systemd/system" \
-    \( -name 'systemd-networkd*' -o -name 'iwd.service' -o -name 'systemd-resolved.service' \) \
+    \( -name 'systemd-networkd*' -o -name 'iwd.service' \) \
     -prune -exec rm -rf {} +
 rm -rf "$profile/airootfs/etc/systemd/network"
 
@@ -48,7 +49,9 @@ cat "$profile/packages.x86_64" "$here/packages.x86_64" \
     | sed 's/#.*//; s/[[:space:]]*$//' | grep -v '^$' | sort -u > "$work/packages"
 mv "$work/packages" "$profile/packages.x86_64"
 
-# Build-time pacman.conf: releng's plus the local Nimbus repo.
+# Build-time pacman.conf: releng's plus the local Nimbus repo. The plain
+# "labwc" session would sit confusingly next to "Nimbus" on the login screen.
+sed -i '/^\[options\]/a NoExtract = usr/share/wayland-sessions/labwc.desktop' "$profile/pacman.conf"
 cat >> "$profile/pacman.conf" <<EOF
 
 [nimbus]
