@@ -32,7 +32,7 @@ rm -rf "$profile/airootfs/etc/systemd/system/getty@tty1.service.d"
 # NetworkManager handles networking instead of networkd + iwd.
 find "$profile/airootfs/etc/systemd/system" \
     \( -name 'systemd-networkd*' -o -name 'iwd.service' -o -name 'systemd-resolved.service' \) \
-    -delete
+    -prune -exec rm -rf {} +
 rm -rf "$profile/airootfs/etc/systemd/network"
 
 # --- Nimbus overlay ----------------------------------------------------
@@ -43,8 +43,10 @@ mkdir -p "$profile/airootfs/usr/share/nimbus"
     comm -23 <(echo "$releng_files") <(echo "$overlay_files") | grep -Ev "$keep" || true
 } > "$profile/airootfs/usr/share/nimbus/live-only-files"
 
-# Packages
-{ echo; cat "$here/packages.x86_64"; } >> "$profile/packages.x86_64"
+# Packages (deduplicated, comments dropped)
+cat "$profile/packages.x86_64" "$here/packages.x86_64" \
+    | sed 's/#.*//; s/[[:space:]]*$//' | grep -v '^$' | sort -u > "$work/packages"
+mv "$work/packages" "$profile/packages.x86_64"
 
 # Build-time pacman.conf: releng's plus the local Nimbus repo.
 cat >> "$profile/pacman.conf" <<EOF
@@ -72,7 +74,7 @@ file_permissions+=(
 EOF
 
 # Boot menu names
-grep -rl "Arch Linux" "$profile"/{grub,syslinux,efiboot} 2>/dev/null | while read -r f; do
+{ grep -rl "Arch Linux" "$profile"/{grub,syslinux,efiboot} 2>/dev/null || true; } | while read -r f; do
     sed -i -e 's/Arch Linux install medium/Nimbus live medium/g' \
            -e 's/Arch Linux/Nimbus/g' "$f"
 done
