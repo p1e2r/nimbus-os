@@ -243,11 +243,12 @@ fn about_page() -> gtk::Box {
 }
 
 fn os_pretty_name() -> String {
-    std::fs::read_to_string("/etc/os-release")
+    // /usr/lib/os-release is the upstream (Arch) one; /etc/os-release says Nimbus.
+    std::fs::read_to_string("/usr/lib/os-release")
         .ok()
         .and_then(|s| {
             s.lines()
                 .find_map(|l| l.strip_prefix("PRETTY_NAME=").map(|v| v.trim_matches('"').to_string()))
         })
-        .unwrap_or_else(|| "Nimbus".into())
+        .unwrap_or_else(|| "Arch Linux".into())
 }

@@ -1,0 +1,11 @@
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = filesystem
+Target = nimbus-release
+
+[Action]
+Description = Applying Nimbus branding...
+When = PostTransaction
+Exec = /usr/share/libalpm/scripts/nimbus-branding
