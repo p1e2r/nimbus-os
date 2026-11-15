@@ -1,0 +1,30 @@
+[package]
+name = "nimbus-rdp"
+version = "0.1.0"
+edition = "2021"
+description = "RDP server for Nimbus Desktop: shares the labwc screen and accepts keyboard/mouse input"
+license = "MIT"
+repository = "https://github.com/p1e2r/nimbus-os"
+
+[dependencies]
+ironrdp-server = { version = "0.13", features = ["helper"] }
+anyhow = "1"
+async-trait = "0.1"
+bytes = "1"
+libc = "0.2"
+memmap2 = "0.9"
+rcgen = "0.14"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "net"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+wayland-client = "0.31"
+wayland-protocols-wlr = { version = "0.3", features = ["client"] }
+wayland-protocols-misc = { version = "0.3", features = ["client"] }
+xkbcommon = "0.9"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

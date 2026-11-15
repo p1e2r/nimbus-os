@@ -1,0 +1,45 @@
+# Maintainer: Nimbus <https://github.com/p1e2r/nimbus-os>
+# Builds nimbus-rdp straight from this repository checkout.
+pkgname=nimbus-rdp
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="RDP server for Nimbus Desktop (share and control the labwc screen remotely)"
+arch=('x86_64')
+url="https://github.com/p1e2r/nimbus-os"
+license=('MIT')
+depends=('libxkbcommon' 'gcc-libs' 'glibc' 'iproute2')
+makedepends=('cargo' 'git')
+options=('!lto' '!debug')
+
+_src="${startdir}/../../nimbus-rdp"
+
+pkgver() {
+  cd "$_src"
+  local base
+  base=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+  printf '%s.r%s.g%s' "$base" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+prepare() {
+  cd "$_src"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$_src"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo build --frozen --release
+}
+
+check() {
+  cd "$_src"
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo test --frozen --release
+}
+
+package() {
+  install -Dm755 "$srcdir/target/release/nimbus-rdp" "$pkgdir/usr/bin/nimbus-rdp"
+  install -Dm644 "$_src/../LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

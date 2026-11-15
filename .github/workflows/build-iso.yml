@@ -21,7 +21,7 @@ jobs:
     container: archlinux:latest
     steps:
       - name: Install toolchain
-        run: pacman -Syu --noconfirm --needed base-devel git rust gtk4 gtk4-layer-shell
+        run: pacman -Syu --noconfirm --needed base-devel git rust gtk4 gtk4-layer-shell libxkbcommon
       - uses: actions/checkout@v4
       - name: Test
         working-directory: nimbus-shell
@@ -29,6 +29,9 @@ jobs:
       - name: Clippy
         working-directory: nimbus-shell
         run: cargo clippy --locked
+      - name: Test nimbus-rdp
+        working-directory: nimbus-rdp
+        run: cargo test --locked && cargo clippy --locked
 
   iso:
     name: Build ISO

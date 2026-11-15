@@ -16,7 +16,8 @@ depends=(
   'xdg-desktop-portal-wlr' 'xdg-desktop-portal-gtk' 'inter-font' 'noto-fonts'
   'pacman-contrib'
 )
-optdepends=('blueman: Bluetooth settings' 'firefox: default web browser')
+optdepends=('blueman: Bluetooth settings' 'firefox: default web browser'
+            'nimbus-rdp: remote desktop (RDP) sharing')
 makedepends=('cargo' 'git')
 options=('!lto' '!debug')
 

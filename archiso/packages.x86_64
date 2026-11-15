@@ -3,6 +3,7 @@
 # Nimbus Desktop (pulls in labwc, pipewire, NetworkManager, fonts, ...)
 nimbus-shell
 nimbus-release
+nimbus-rdp
 
 # Graphical installer and what it needs on the live system
 calamares
@@ -24,6 +25,8 @@ sddm
 xorg-server
 
 # Everyday apps
+remmina
+freerdp
 firefox
 mousepad
 ristretto

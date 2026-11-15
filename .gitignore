@@ -7,3 +7,4 @@
 /packaging/*/pkg/
 /packaging/*/*.pkg.tar.zst
 /packaging/*/*.tar.gz
+/nimbus-rdp/target/

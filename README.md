@@ -29,6 +29,21 @@ The live system logs straight into Nimbus Desktop. To install, click the cloud i
 
 > Nimbus Desktop is already on the ISO, so it installs offline. The other desktops are downloaded during install, so you'll need internet for those.
 
+## Remote desktop (RDP)
+
+Nimbus Desktop can share its screen over RDP with [`nimbus-rdp`](nimbus-rdp/), a small Rust server built on [IronRDP](https://github.com/Devolutions/IronRDP). It captures the screen through labwc's screen-copy protocol and feeds the remote keyboard and mouse back in through virtual input devices.
+
+1. Open **Nimbus Settings → Remote desktop**, turn it on, set a password, and click **Apply**. The page shows the address to connect to.
+2. Connect with:
+   - **Windows App** (Microsoft Remote Desktop) on a Mac, iPhone or iPad
+   - **Remote Desktop Connection** on Windows
+   - **Remmina** or `xfreerdp3` on Linux
+3. The first time you connect, accept the certificate. It's self-signed and unique to this computer.
+
+Logins use NLA (CredSSP) with the username and password you set. The server starts again automatically each time you log in. It only shares a session where someone is logged in, and if the screen is locked, the remote side sees the lock screen.
+
+KDE Plasma and GNOME have their own RDP sharing in their system settings. The ISO also includes **Remmina**, so you can connect *from* Nimbus to other computers.
+
 ## Updates and the Nimbus package repo
 
 Nimbus has its own signed pacman repository, `[nimbus]`, on top of Arch's repos. It's hosted on this repo's [`repo` release](../../releases/tag/repo). Every installed system has it configured already:
@@ -68,7 +83,9 @@ Config lives in `~/.config/nimbus/shell.toml` (shell) and `~/.config/nimbus/labw
 
 ```
 nimbus-shell/            Rust source for Nimbus Desktop + its data files
+nimbus-rdp/              Rust RDP server for Nimbus Desktop
 packaging/nimbus-shell/  PKGBUILD for nimbus-shell
+packaging/nimbus-rdp/    PKGBUILD for nimbus-rdp
 packaging/calamares/     PKGBUILD for Calamares (not in official Arch repos)
 packaging/nimbus-release/ repo signing key + mirrorlist package
 archiso/                 ISO overlay on top of Arch's "releng" profile

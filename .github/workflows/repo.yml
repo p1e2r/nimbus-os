@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - "nimbus-shell/**"
+      - "nimbus-rdp/**"
       - "packaging/**"
       - "archiso/build-packages.sh"
       - ".github/workflows/repo.yml"

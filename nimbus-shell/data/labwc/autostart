@@ -5,6 +5,8 @@ dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 nimbus-shell wallpaper >/dev/null 2>&1 &
 nimbus-shell panel >/dev/null 2>&1 &
 mako >/dev/null 2>&1 &
+# Remote desktop (RDP), if switched on in Nimbus Settings.
+command -v nimbus-rdp >/dev/null && nimbus-rdp --if-enabled >/dev/null 2>&1 &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 >/dev/null 2>&1 &
 swayidle -w \
     timeout 600 'swaylock -f -c 16161e' \

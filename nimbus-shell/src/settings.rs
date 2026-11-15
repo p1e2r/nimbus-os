@@ -27,6 +27,7 @@ pub fn activate(app: &gtk::Application) {
     stack.set_transition_type(gtk::StackTransitionType::Crossfade);
     stack.add_titled(&appearance_page(&win, &cfg), Some("appearance"), "Appearance");
     stack.add_titled(&panel_page(&cfg), Some("panel"), "Panel");
+    stack.add_titled(&remote_page(), Some("remote"), "Remote desktop");
     stack.add_titled(&system_page(), Some("system"), "System");
     stack.add_titled(&about_page(), Some("about"), "About");
 
@@ -182,6 +183,161 @@ fn panel_page(cfg: &Rc<RefCell<Config>>) -> gtk::Box {
             save(&cfg);
             sys::run_quiet("pkill", &["-f", "nimbus-shell panel"]);
             sys::spawn_self("panel");
+        });
+    }
+    p.append(&apply);
+    p
+}
+
+// ---------------------------------------------------------- remote desktop
+
+fn rdp_config_path() -> std::path::PathBuf {
+    config::path().with_file_name("rdp.toml")
+}
+
+fn load_rdp() -> toml::Table {
+    std::fs::read_to_string(rdp_config_path())
+        .ok()
+        .and_then(|s| s.parse::<toml::Table>().ok())
+        .unwrap_or_default()
+}
+
+fn save_rdp(table: &toml::Table) -> std::io::Result<()> {
+    use std::io::Write;
+    use std::os::unix::fs::OpenOptionsExt;
+    let path = rdp_config_path();
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir)?;
+    }
+    // Holds a password: readable by this user only.
+    let mut f = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .mode(0o600)
+        .open(&path)?;
+    f.write_all(table.to_string().as_bytes())
+}
+
+fn rdp_running() -> bool {
+    std::process::Command::new("pgrep")
+        .args(["-x", "nimbus-rdp"])
+        .stdout(std::process::Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
+/// IPv4 addresses other machines can use to reach this one.
+fn local_addresses() -> Vec<String> {
+    let out = std::process::Command::new("ip")
+        .args(["-4", "-o", "addr", "show", "scope", "global"])
+        .output();
+    let Ok(out) = out else { return Vec::new() };
+    String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .filter_map(|l| l.split_whitespace().nth(3))
+        .filter_map(|cidr| cidr.split('/').next())
+        .map(str::to_string)
+        .collect()
+}
+
+fn remote_page() -> gtk::Box {
+    let p = page();
+    p.append(&heading("Remote desktop"));
+
+    let intro = gtk::Label::new(Some(
+        "Let other computers see and control this screen over RDP. Use Windows App / Microsoft \
+         Remote Desktop on Mac or iPhone, Remote Desktop Connection on Windows, or Remmina on Linux.",
+    ));
+    intro.set_wrap(true);
+    intro.set_xalign(0.0);
+    intro.add_css_class("dim-label");
+    p.append(&intro);
+
+    let table = load_rdp();
+    let get_str = |k: &str, d: &str| table.get(k).and_then(|v| v.as_str()).unwrap_or(d).to_string();
+    let user_default = std::env::var("USER").unwrap_or_else(|_| "nimbus".into());
+
+    let enabled = gtk::Switch::new();
+    enabled.set_active(table.get("enabled").and_then(|v| v.as_bool()).unwrap_or(false));
+    p.append(&row("Allow remote desktop", "Starts automatically when you log in.", &enabled));
+
+    let username = gtk::Entry::new();
+    username.set_text(&get_str("username", &user_default));
+    username.set_width_chars(20);
+    p.append(&row("Username", "The name to type in the RDP client.", &username));
+
+    let password = gtk::PasswordEntry::new();
+    password.set_show_peek_icon(true);
+    password.set_text(&get_str("password", ""));
+    password.set_width_chars(20);
+    p.append(&row("Password", "Required. Pick something only you know.", &password));
+
+    let port = gtk::SpinButton::with_range(1024.0, 65535.0, 1.0);
+    port.set_value(table.get("port").and_then(|v| v.as_integer()).unwrap_or(3389) as f64);
+    p.append(&row("Port", "3389 is the standard RDP port.", &port));
+
+    let view_only = gtk::Switch::new();
+    view_only.set_active(table.get("view_only").and_then(|v| v.as_bool()).unwrap_or(false));
+    p.append(&row("View only", "Show the screen but ignore the remote keyboard and mouse.", &view_only));
+
+    let status = gtk::Label::new(None);
+    status.set_xalign(0.0);
+    status.set_wrap(true);
+    status.set_selectable(true);
+    p.append(&status);
+
+    let refresh_status = {
+        let status = status.clone();
+        let port = port.clone();
+        move || {
+            if rdp_running() {
+                let addrs = local_addresses();
+                let port = port.value() as u16;
+                let target = match addrs.first() {
+                    Some(a) if port == 3389 => a.clone(),
+                    Some(a) => format!("{a}:{port}"),
+                    None => format!("this computer's IP address (port {port})"),
+                };
+                status.set_markup(&format!(
+                    "<b>On.</b> Connect to <b>{}</b>. The first time, the client will ask you to trust this computer's certificate.",
+                    glib::markup_escape_text(&target)
+                ));
+            } else {
+                status.set_markup("<b>Off.</b>");
+            }
+        }
+    };
+    refresh_status();
+
+    let apply = gtk::Button::with_label("Apply");
+    apply.add_css_class("suggested-action");
+    apply.set_halign(gtk::Align::End);
+    {
+        let status = status.clone();
+        apply.connect_clicked(move |_| {
+            let pw = password.text().to_string();
+            if enabled.is_active() && pw.is_empty() {
+                status.set_markup("<b>Set a password first.</b> Remote desktop needs one.");
+                return;
+            }
+            let mut t = load_rdp();
+            t.insert("enabled".into(), enabled.is_active().into());
+            t.insert("username".into(), username.text().trim().to_string().into());
+            t.insert("password".into(), pw.into());
+            t.insert("port".into(), (port.value() as i64).into());
+            t.insert("view_only".into(), view_only.is_active().into());
+            if let Err(e) = save_rdp(&t) {
+                status.set_text(&format!("Could not save settings: {e}"));
+                return;
+            }
+            sys::run_quiet("pkill", &["-x", "nimbus-rdp"]);
+            if enabled.is_active() {
+                sys::spawn("sleep 0.5; exec nimbus-rdp");
+            }
+            let refresh = refresh_status.clone();
+            glib::timeout_add_seconds_local_once(2, refresh);
         });
     }
     p.append(&apply);

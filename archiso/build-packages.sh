@@ -8,7 +8,7 @@ set -euo pipefail
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
 localrepo="$repo_root/localrepo"
-packages=(nimbus-release nimbus-shell calamares)
+packages=(nimbus-release nimbus-shell nimbus-rdp calamares)
 
 pacman -Syu --noconfirm --needed base-devel git sudo
 

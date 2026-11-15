@@ -130,9 +130,15 @@ fn build(app: &gtk::Application) {
         search.add_controller(keys);
     }
 
-    // Escape closes.
+    // Escape closes. The search entry consumes Escape itself (as
+    // "stop-search"), so handle that too, and listen in the capture phase.
+    {
+        let w = win.clone();
+        search.connect_stop_search(move |_| w.set_visible(false));
+    }
     {
         let keys = gtk::EventControllerKey::new();
+        keys.set_propagation_phase(gtk::PropagationPhase::Capture);
         let w = win.clone();
         keys.connect_key_pressed(move |_, key, _, _| {
             if key == gdk::Key::Escape {
