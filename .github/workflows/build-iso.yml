@@ -58,7 +58,7 @@ jobs:
             archlinux:latest \
             bash -c 'bash /nimbus/archiso/build-packages.sh && WORK_DIR=/work/nimbus bash /nimbus/archiso/build-iso.sh'
           sudo rm -rf /mnt/work
-          sudo chown -R "$(id -u):$(id -g)" out localrepo
+          sudo chown -R "$(id -u):$(id -g)" .
           ls -la out localrepo
 
       - name: Prepare release files
