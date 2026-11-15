@@ -1,0 +1,9 @@
+#!/bin/bash
+# Called by the installer after the chosen desktop was installed into $1.
+set -uo pipefail
+ROOT="${1:?usage: nimbus-calamares-finalize ROOT}"
+
+# The installer itself is not needed on the installed system.
+chroot "$ROOT" pacman -Rdd --noconfirm calamares 2>/dev/null || true
+rm -rf "$ROOT/etc/calamares"
+exit 0

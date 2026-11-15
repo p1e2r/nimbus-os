@@ -1,0 +1,18 @@
+#!/bin/bash
+# Creates the passwordless "live" user on the live ISO. Runs once per boot,
+# before the display manager. Never present on an installed system.
+set -euo pipefail
+
+if ! id live &>/dev/null; then
+    useradd -m -G wheel,video,audio,network,storage -s /bin/bash -c "Live User" live
+    passwd -d live >/dev/null
+fi
+
+install -m 440 /dev/stdin /etc/sudoers.d/10-live <<<'live ALL=(ALL:ALL) NOPASSWD: ALL'
+
+cfg=/home/live/.config/nimbus
+mkdir -p "$cfg"
+cat > "$cfg/shell.toml" <<'TOML'
+pinned = ["nimbus-install.desktop", "org.codeberg.dnkl.foot.desktop|foot.desktop", "thunar.desktop", "firefox.desktop"]
+TOML
+chown -R live:live /home/live/.config

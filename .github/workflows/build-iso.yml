@@ -1,0 +1,126 @@
+name: Build Nimbus ISO
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: iso-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shell:
+    name: Check nimbus-shell
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install toolchain
+        run: pacman -Syu --noconfirm --needed base-devel git rust gtk4 gtk4-layer-shell
+      - uses: actions/checkout@v4
+      - name: Test
+        working-directory: nimbus-shell
+        run: cargo test --locked
+      - name: Clippy
+        working-directory: nimbus-shell
+        run: cargo clippy --locked -- -D warnings
+
+  iso:
+    name: Build ISO
+    needs: shell
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force
+          df -h / /mnt
+
+      - uses: actions/checkout@v4
+
+      - name: Build packages and ISO (Arch container)
+        run: |
+          sudo mkdir -p /mnt/work
+          docker run --rm --privileged \
+            -v "$PWD:/nimbus" \
+            -v /mnt/work:/work \
+            -e GITHUB_ACTIONS=true \
+            archlinux:latest \
+            bash -c 'bash /nimbus/archiso/build-packages.sh && WORK_DIR=/work/nimbus bash /nimbus/archiso/build-iso.sh'
+          sudo rm -rf /mnt/work
+          sudo chown -R "$(id -u):$(id -g)" out localrepo
+          ls -la out localrepo
+
+      - name: Prepare release files
+        id: files
+        run: |
+          iso=$(ls out/*.iso | head -n1)
+          name=$(basename "$iso")
+          echo "iso=$iso" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          size=$(stat -c %s "$iso")
+          echo "ISO size: $size bytes"
+          mkdir -p release
+          # GitHub release assets must be under 2 GiB.
+          if [ "$size" -ge 2000000000 ]; then
+            split -b 1900M -d -a 1 "$iso" "release/$name.part"
+            echo "split=true" >> "$GITHUB_OUTPUT"
+          else
+            cp "$iso" release/
+            echo "split=false" >> "$GITHUB_OUTPUT"
+          fi
+          cp out/*.sha256 release/
+          # Pacman repo for installed systems (symlinks resolved).
+          mkdir -p repo
+          cp -L localrepo/*.pkg.tar.zst repo/
+          cp -L localrepo/nimbus.db.tar.gz repo/nimbus.db.tar.gz
+          cp -L localrepo/nimbus.db.tar.gz repo/nimbus.db
+          cp -L localrepo/nimbus.files.tar.gz repo/nimbus.files.tar.gz
+          cp -L localrepo/nimbus.files.tar.gz repo/nimbus.files
+
+      - name: Upload ISO as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nimbus-iso
+          path: release/
+          compression-level: 0
+          retention-days: 14
+
+      - name: Publish pacman repo
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: repo
+          name: Nimbus package repository
+          body: |
+            Pacman repository used by installed Nimbus systems:
+            `Server = https://github.com/${{ github.repository }}/releases/download/repo`
+            Updated automatically on every push to main.
+          prerelease: true
+          make_latest: false
+          files: repo/*
+
+      - name: Publish ISO release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          name: Nimbus 0.1.${{ github.run_number }}
+          make_latest: true
+          files: release/*
+          body: |
+            Nimbus live / install ISO (x86_64), built from ${{ github.sha }}.
+
+            **Try it:** flash `${{ steps.files.outputs.name }}` to a USB stick (balenaEtcher, Ventoy or `dd`), or boot it in a VM
+            (UTM on Apple Silicon: *Emulate* → x86_64, 4 GB RAM, UEFI).
+            It logs straight into Nimbus Desktop; click the cloud icon in the panel to install.
+
+            ${{ steps.files.outputs.split == 'true' && format('The ISO was split into parts to fit GitHub''s 2 GB limit. Join them first: `cat {0}.part* > {0}`', steps.files.outputs.name) || '' }}
+
+            Check: `sha256sum -c ${{ steps.files.outputs.name }}.sha256`

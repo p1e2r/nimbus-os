@@ -1,0 +1,138 @@
+/* Nimbus Desktop shell styling. Accent: sky blue #5aa9ff */
+
+window.nimbus-panel {
+  background: rgba(18, 20, 30, 0.88);
+  color: #e6e9f2;
+}
+
+window.nimbus-panel .bar {
+  min-height: 36px;
+  padding: 0 6px;
+}
+
+window.nimbus-panel button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #e6e9f2;
+  border-radius: 8px;
+  padding: 4px 8px;
+  min-height: 0;
+}
+
+window.nimbus-panel button:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+window.nimbus-panel button.start {
+  font-weight: 700;
+  background: rgba(90, 169, 255, 0.18);
+}
+
+window.nimbus-panel button.start:hover {
+  background: rgba(90, 169, 255, 0.32);
+}
+
+window.nimbus-panel separator {
+  margin: 8px 4px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+window.nimbus-panel .clock {
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+window.nimbus-panel .battery {
+  margin: 0 6px;
+}
+
+window.nimbus-panel button.power:hover {
+  background: rgba(255, 90, 90, 0.30);
+}
+
+.popover-body {
+  padding: 8px;
+}
+
+/* ---------------------------------------------------------- overlays */
+
+window.nimbus-overlay {
+  background: rgba(8, 10, 18, 0.62);
+  color: #e6e9f2;
+}
+
+.launcher-card {
+  background: rgba(24, 27, 40, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.launcher-search {
+  font-size: 16px;
+  min-height: 42px;
+  border-radius: 12px;
+  padding: 0 10px;
+}
+
+.app-tile {
+  padding: 12px 6px;
+}
+
+window.nimbus-overlay flowboxchild {
+  border-radius: 14px;
+}
+
+window.nimbus-overlay flowboxchild:hover,
+window.nimbus-overlay flowboxchild:selected,
+window.nimbus-overlay flowboxchild:focus {
+  background: rgba(90, 169, 255, 0.22);
+}
+
+.power-title {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+button.power-action {
+  min-width: 120px;
+  min-height: 120px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #e6e9f2;
+}
+
+button.power-action:hover {
+  background: rgba(90, 169, 255, 0.28);
+}
+
+/* ---------------------------------------------------------- settings */
+
+.settings-row {
+  padding: 10px 0;
+  border-bottom: 1px solid alpha(currentColor, 0.08);
+}
+
+.wallpaper-preview {
+  border-radius: 12px;
+}
+
+/* ------------------------------------------------------------ taskbar */
+
+window.nimbus-panel button.task {
+  padding: 3px 10px;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 4px 4px;
+}
+
+window.nimbus-panel button.task.active {
+  background: rgba(90, 169, 255, 0.20);
+  border-bottom-color: #5aa9ff;
+}
+
+window.nimbus-panel button.task.minimized {
+  opacity: 0.55;
+}

@@ -1,0 +1,36 @@
+---
+componentName: nimbus
+
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 960px,640px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+
+strings:
+  productName: "Nimbus"
+  shortProductName: "Nimbus"
+  version: "rolling"
+  shortVersion: "rolling"
+  versionedName: "Nimbus (rolling)"
+  shortVersionedName: "Nimbus"
+  bootloaderEntryName: "Nimbus"
+  productUrl: "https://github.com/p1e2r/nimbus-os"
+  supportUrl: "https://github.com/p1e2r/nimbus-os/issues"
+  knownIssuesUrl: "https://github.com/p1e2r/nimbus-os/issues"
+
+images:
+  productIcon: "logo.png"
+  productLogo: "logo.png"
+  productWelcome: "welcome.png"
+
+style:
+  SidebarBackground: "#141826"
+  SidebarText: "#e6e9f2"
+  SidebarTextCurrent: "#0d1020"
+  SidebarBackgroundCurrent: "#5aa9ff"
+
+slideshow: "show.qml"
+slideshowAPI: 2

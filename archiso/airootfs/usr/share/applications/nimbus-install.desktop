@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Install Nimbus
+Comment=Install Nimbus on this computer
+Exec=nimbus-install
+Icon=nimbus-logo
+Terminal=false
+Type=Application
+Categories=System;
+Keywords=install;installer;calamares;setup;

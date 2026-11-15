@@ -1,0 +1,48 @@
+#!/bin/bash
+# Called by the installer right after the live image was copied to $1.
+# Turns that copy into a normal installed system.
+set -uo pipefail
+ROOT="${1:?usage: nimbus-calamares-cleanup ROOT}"
+[ -d "$ROOT/usr" ] || { echo "not a root filesystem: $ROOT" >&2; exit 1; }
+
+# 1. Remove files that only make sense on the live ISO.
+list=/usr/share/nimbus/live-only-files
+if [ -f "$list" ]; then
+    while IFS= read -r f; do
+        case "$f" in ''|'#'*) continue ;; esac
+        rm -rf -- "${ROOT:?}/${f#/}"
+    done < "$list"
+fi
+rm -f "$ROOT/usr/share/nimbus/live-only-files"
+
+# 2. Kernel and CPU microcode (mkarchiso empties /boot inside the image).
+for d in "$ROOT"/usr/lib/modules/*/; do
+    if [ "$(cat "$d/pkgbase" 2>/dev/null)" = "linux" ]; then
+        install -Dm644 "$d/vmlinuz" "$ROOT/boot/vmlinuz-linux"
+    fi
+done
+for u in intel-ucode.img amd-ucode.img; do
+    src=/run/archiso/bootmnt/arch/boot/$u
+    [ -f "$src" ] && install -Dm644 "$src" "$ROOT/boot/$u"
+done
+
+# 3. A normal mkinitcpio preset (the live one builds an archiso initramfs).
+mkdir -p "$ROOT/etc/mkinitcpio.d" "$ROOT/etc/mkinitcpio.conf.d"
+cat > "$ROOT/etc/mkinitcpio.d/linux.preset" <<'PRESET'
+# mkinitcpio preset file for the 'linux' package
+ALL_kver="/boot/vmlinuz-linux"
+PRESETS=('default' 'fallback')
+default_image="/boot/initramfs-linux.img"
+fallback_image="/boot/initramfs-linux-fallback.img"
+fallback_options="-S autodetect"
+PRESET
+
+# 4. Mirrors ranked at boot by reflector, and a fresh pacman keyring.
+[ -s /etc/pacman.d/mirrorlist ] && cp /etc/pacman.d/mirrorlist "$ROOT/etc/pacman.d/mirrorlist"
+rm -rf "$ROOT/etc/pacman.d/gnupg"
+chroot "$ROOT" pacman-key --init
+chroot "$ROOT" pacman-key --populate archlinux
+
+# 5. The live user's sudo rule is created at boot, but be thorough.
+rm -f "$ROOT/etc/sudoers.d/10-live"
+exit 0

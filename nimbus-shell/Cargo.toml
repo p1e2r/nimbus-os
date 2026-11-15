@@ -1,0 +1,23 @@
+[package]
+name = "nimbus-shell"
+version = "0.1.0"
+edition = "2021"
+description = "Nimbus Desktop shell: panel, launcher, power menu and settings for the labwc compositor"
+license = "MIT"
+repository = "https://github.com/p1e2r/nimbus-os"
+
+[dependencies]
+gtk = { package = "gtk4", version = "0.11", features = ["v4_12"] }
+gtk4-layer-shell = "0.8"
+gio-unix = "0.22"
+wayland-client = "0.31"
+wayland-protocols-wlr = { version = "0.3", features = ["client"] }
+async-channel = "2"
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

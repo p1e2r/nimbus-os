@@ -1,0 +1,3 @@
+#!/bin/sh
+# Start the graphical installer (Calamares) with root rights.
+exec sudo -E env QT_QPA_PLATFORM="wayland;xcb" calamares "$@"

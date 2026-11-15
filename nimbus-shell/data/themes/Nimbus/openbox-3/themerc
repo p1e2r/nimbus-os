@@ -1,0 +1,36 @@
+# Nimbus window decorations for labwc.
+
+border.width: 1
+padding.width: 8
+padding.height: 6
+window.titlebar.padding.width: 6
+
+window.active.border.color: #2b3350
+window.inactive.border.color: #1d2133
+
+window.active.title.bg.color: #1b1f30
+window.inactive.title.bg.color: #151826
+
+window.active.label.text.color: #e6e9f2
+window.inactive.label.text.color: #7d849c
+window.label.text.justify: center
+
+window.active.button.unpressed.image.color: #c9d1e6
+window.inactive.button.unpressed.image.color: #5d647a
+window.active.button.hover.image.color: #ffffff
+window.close.active.button.hover.image.color: #ffffff
+
+menu.overlap.x: 0
+menu.items.bg.color: #1b1f30
+menu.items.text.color: #e6e9f2
+menu.items.active.bg.color: #5aa9ff
+menu.items.active.text.color: #0d1020
+menu.separator.color: #2b3350
+menu.border.width: 1
+menu.border.color: #2b3350
+
+osd.bg.color: #1b1f30
+osd.border.color: #5aa9ff
+osd.border.width: 1
+osd.label.text.color: #e6e9f2
+osd.window-switcher.item.active.border.color: #5aa9ff

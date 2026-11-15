@@ -1,0 +1,56 @@
+# Maintainer: Nimbus <https://github.com/p1e2r/nimbus-os>
+# Builds nimbus-shell straight from this repository checkout.
+pkgname=nimbus-shell
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Nimbus Desktop: panel, launcher, power menu and settings on top of labwc"
+arch=('x86_64')
+url="https://github.com/p1e2r/nimbus-os"
+license=('MIT')
+depends=(
+  'gtk4' 'gtk4-layer-shell' 'librsvg' 'adwaita-icon-theme' 'gsettings-desktop-schemas'
+  'labwc' 'xorg-xwayland' 'swaybg' 'swaylock' 'swayidle' 'mako' 'libnotify'
+  'foot' 'thunar' 'grim' 'slurp' 'wl-clipboard' 'brightnessctl' 'wdisplays'
+  'pipewire' 'pipewire-pulse' 'wireplumber' 'pavucontrol'
+  'networkmanager' 'nm-connection-editor' 'polkit-gnome'
+  'xdg-desktop-portal-wlr' 'xdg-desktop-portal-gtk' 'inter-font' 'noto-fonts'
+)
+optdepends=('blueman: Bluetooth settings' 'firefox: default web browser')
+makedepends=('cargo')
+options=('!lto' '!debug')
+
+_src="${startdir}/../../nimbus-shell"
+
+prepare() {
+  cd "$_src"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$_src"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo build --frozen --release
+}
+
+check() {
+  cd "$_src"
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo test --frozen --release
+}
+
+package() {
+  cd "$_src"
+  install -Dm755 "$srcdir/target/release/nimbus-shell" "$pkgdir/usr/bin/nimbus-shell"
+  install -Dm755 data/nimbus-session "$pkgdir/usr/bin/nimbus-session"
+  install -Dm644 data/sessions/nimbus.desktop "$pkgdir/usr/share/wayland-sessions/nimbus.desktop"
+  install -Dm644 data/labwc/rc.xml "$pkgdir/usr/share/nimbus/labwc/rc.xml"
+  install -Dm644 data/labwc/menu.xml "$pkgdir/usr/share/nimbus/labwc/menu.xml"
+  install -Dm644 data/labwc/autostart "$pkgdir/usr/share/nimbus/labwc/autostart"
+  install -Dm644 data/themes/Nimbus/openbox-3/themerc "$pkgdir/usr/share/themes/Nimbus/openbox-3/themerc"
+  install -Dm644 data/backgrounds/default.png "$pkgdir/usr/share/backgrounds/nimbus/default.png"
+  install -Dm644 data/nimbus-logo.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/nimbus-logo.svg"
+  install -Dm644 data/applications/nimbus-settings.desktop "$pkgdir/usr/share/applications/nimbus-settings.desktop"
+  install -Dm644 ../LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

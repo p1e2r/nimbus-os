@@ -1,0 +1,5 @@
+#!/bin/sh
+# Live ISO greeting.
+sleep 3
+notify-send -i nimbus-logo -t 15000 "Welcome to Nimbus" \
+  "Have a look around. When you're ready, click the cloud icon pinned to the panel (or search \"Install\") to install Nimbus."

@@ -1,0 +1,12 @@
+[Unit]
+Description=Nimbus live session setup
+Before=display-manager.service
+ConditionPathExists=/run/archiso
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/nimbus-live-setup
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

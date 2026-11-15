@@ -1,0 +1,14 @@
+# Files from the Nimbus overlay that exist only for the live ISO.
+# The installer deletes these from the installed system.
+# (Leftover files from Arch's releng profile are appended automatically.)
+/etc/calamares
+/etc/sddm.conf.d/10-nimbus-live.conf
+/etc/systemd/system/nimbus-live-setup.service
+/etc/systemd/system/multi-user.target.wants/nimbus-live-setup.service
+/usr/bin/nimbus-live-setup
+/usr/bin/nimbus-live-welcome
+/usr/bin/nimbus-install
+/usr/bin/nimbus-calamares-cleanup
+/usr/bin/nimbus-calamares-finalize
+/usr/share/applications/nimbus-install.desktop
+/etc/hostname

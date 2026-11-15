@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Nimbus Settings
+Comment=Appearance, wallpaper, panel and system settings
+Exec=nimbus-shell settings
+Icon=preferences-system
+Terminal=false
+Type=Application
+Categories=Settings;
+OnlyShowIn=Nimbus;
+Keywords=wallpaper;theme;dark;panel;display;sound;network;

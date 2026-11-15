@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Nimbus
+Comment=Nimbus Desktop (labwc + nimbus-shell)
+Exec=nimbus-session
+Type=Application
+DesktopNames=Nimbus;wlroots

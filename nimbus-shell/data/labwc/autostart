@@ -1,0 +1,14 @@
+# Run by labwc when a Nimbus session starts.
+
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE >/dev/null 2>&1
+
+nimbus-shell wallpaper >/dev/null 2>&1 &
+nimbus-shell panel >/dev/null 2>&1 &
+mako >/dev/null 2>&1 &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 >/dev/null 2>&1 &
+swayidle -w \
+    timeout 600 'swaylock -f -c 16161e' \
+    before-sleep 'swaylock -f -c 16161e' >/dev/null 2>&1 &
+
+# Live ISO only: show the "Install Nimbus" welcome.
+[ -x /usr/bin/nimbus-live-welcome ] && /usr/bin/nimbus-live-welcome >/dev/null 2>&1 &

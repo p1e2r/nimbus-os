@@ -1,0 +1,24 @@
+#!/bin/sh
+# Start a Nimbus Desktop session (labwc + nimbus-shell).
+
+export XDG_CURRENT_DESKTOP=Nimbus:wlroots
+export XDG_SESSION_DESKTOP=nimbus
+export XDG_SESSION_TYPE=wayland
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM="wayland;xcb"
+export QT_QPA_PLATFORMTHEME=gtk3
+export SDL_VIDEODRIVER="wayland,x11"
+export _JAVA_AWT_WM_NONREPARENTING=1
+
+# Virtual machines often have broken hardware cursors.
+if command -v systemd-detect-virt >/dev/null 2>&1 && systemd-detect-virt -q; then
+    export WLR_NO_HARDWARE_CURSORS=1
+fi
+
+conf="${XDG_CONFIG_HOME:-$HOME/.config}/nimbus/labwc"
+if [ ! -f "$conf/rc.xml" ]; then
+    mkdir -p "$conf"
+    cp -r /usr/share/nimbus/labwc/. "$conf/"
+fi
+
+exec labwc -C "$conf"

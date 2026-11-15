@@ -1,0 +1,38 @@
+# Added on top of Arch's releng package list.
+
+# Nimbus Desktop (pulls in labwc, pipewire, NetworkManager, fonts, ...)
+nimbus-shell
+
+# Graphical installer and what it needs on the live system
+calamares
+qt6-wayland
+grub
+efibootmgr
+os-prober
+dosfstools
+mtools
+e2fsprogs
+btrfs-progs
+xfsprogs
+squashfs-tools
+rsync
+sudo
+
+# Login screen
+sddm
+xorg-server
+
+# Everyday apps
+firefox
+mousepad
+ristretto
+file-roller
+gvfs
+thunar-volman
+blueman
+bluez
+bluez-utils
+xdg-user-dirs
+noto-fonts-emoji
+ttf-dejavu
+pacman-contrib
