@@ -205,8 +205,10 @@ impl Dispatch<ZwlrForeignToplevelHandleV1, ()> for State {
                     handle::Event::AppId { app_id } => w.app_id = app_id,
                     handle::Event::State { state: raw } => {
                         let states: Vec<u32> = raw
-                            .chunks_exact(4)
-                            .map(|c| u32::from_ne_bytes([c[0], c[1], c[2], c[3]]))
+                            .as_chunks::<4>()
+                            .0
+                            .iter()
+                            .map(|c| u32::from_ne_bytes(*c))
                             .collect();
                         w.active = states.contains(&(handle::State::Activated as u32));
                         w.minimized = states.contains(&(handle::State::Minimized as u32));

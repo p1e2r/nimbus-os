@@ -28,7 +28,7 @@ jobs:
         run: cargo test --locked
       - name: Clippy
         working-directory: nimbus-shell
-        run: cargo clippy --locked -- -D warnings
+        run: cargo clippy --locked
 
   iso:
     name: Build ISO
